@@ -177,6 +177,7 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam RootAlg "IloCplex::RootAlg"
     cdef IntParam Threads "IloCplex::Threads"
     cdef IntParam RelativeMIPGapTolerance "IloCplex::EpGap"
+    cdef IntParam MIPEmphasis "IloCplex::MIPEmphasis"
 
     cdef int CPX_ALG_NONE, CPX_ALG_AUTOMATIC, CPX_ALG_PRIMAL, CPX_ALG_DUAL, CPX_ALG_BARRIER,
     cdef int CPX_ALG_SIFTING, CPX_ALG_CONCURRENT, CPX_ALG_NET
@@ -1836,7 +1837,8 @@ cdef class CPlexModel(object):
     cpdef solve(self, objective, maximize = None, minimize = None,
               bint recycle_variables = False, bint recycle_basis = True,
               dict starting_dict = {}, str basis_file = None,
-              algorithm = "auto", max_threads = None, relative_gap = None):
+              algorithm = "auto", max_threads = None, relative_gap = None,
+	      emphasis = None):
         """
         Solves the current model trying to maximize (default) or
         minimize `objective` subject to the constraints given by
@@ -1906,6 +1908,10 @@ cdef class CPlexModel(object):
         relative_gap:
 
           Specify the relative gap for the relaxed vs. integer solution.
+
+	emphasis:
+
+	  Specify emphasis on optimality (2), feasibility (1), or both (0).
 
         Example 1::
 
@@ -2045,6 +2051,9 @@ cdef class CPlexModel(object):
 
             if relative_gap is not None:
                 self.model.setParameter(RelativeMIPGapTolerance, float(relative_gap))
+
+            if emphasis is not None:
+                self.model.setParameter(MIPEmphasis, <int> int(emphasis))
 
             if tmp_basis_file_name is not None:
                 b = bytes(tmp_basis_file_name)

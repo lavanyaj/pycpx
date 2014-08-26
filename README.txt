@@ -26,3 +26,4 @@ doc/.build/html.
 
 Additional documentation can be found at
 http://www.stat.washington.edu/~hoytak/code/pycpx/.
+...
