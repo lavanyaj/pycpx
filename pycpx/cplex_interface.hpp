@@ -220,12 +220,15 @@ public:
       return Status("Model is proved either Infeasible or Unbounded", CPX_STAT_INForUNBD);
     case IloCplex::OptimalInfeas:
       return Status("Optimal solution is available, but with infeasibilities after unscaling", CPX_STAT_OPTIMAL_INFEAS);
+      */
     case IloCplex::NumBest:
       return Status("Solution is available, but not proved optimal, due to numerical difficulties during optimization", CPX_STAT_NUM_BEST);
     case IloCplex::AbortItLim:
       return Status("Aborted due to an iteration limit", CPX_STAT_ABORT_IT_LIM);
+      /*
     case IloCplex::AbortTimeLim:
       return Status("Aborted due to a time limit", CPX_STAT_ABORT_TIME_LIM);
+      */
     case IloCplex::AbortObjLim:
       return Status("Aborted due to an objective limit", CPX_STAT_ABORT_OBJ_LIM);
     case IloCplex::AbortUser:
@@ -236,7 +239,6 @@ public:
       return Status("Aborted due to a primal obj limit", CPX_STAT_ABORT_PRIM_OBJ_LIM);
     case IloCplex::AbortDualObjLim:
       return Status("Aborted due to a dual obj limit", CPX_STAT_ABORT_DUAL_OBJ_LIM);  
-      */
     case IloCplex::Optimal:
       return Status();
       //"Optimal integer solution found", CPXMIP_OPTIMAL);
