@@ -1,4 +1,6 @@
-f = open('errcodes.txt', 'r')
+import fileinput
+
+
 
 value = None
 sym = None
@@ -7,7 +9,7 @@ meaning = None
 
 StatusCodes = {}
 t = 0
-for line in f:
+for line in fileinput.input():
     if t == 0:
         value = int(line.rstrip())
         pass
@@ -42,4 +44,4 @@ print "default:"
 print "  return Status(\"Unknown status code from Cplex\");"
 print "}"
 
-f.close()
+

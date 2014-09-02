@@ -1,0 +1,128 @@
+1 
+CPX_STAT_OPTIMAL 
+IloCplex::Optimal 
+Optimal solution is available 
+2 
+CPX_STAT_UNBOUNDED 
+IloCplex::Unbounded 
+Model has an Unbounded ray 
+3 
+CPX_STAT_INFEASIBLE 
+IloCplex::Infeasible 
+Model is proved Infeasible 
+4 
+CPX_STAT_INForUNBD 
+IloCplex::InfOrUnbd 
+Model is proved either Infeasible or Unbounded 
+5 
+CPX_STAT_OPTIMAL_INFEAS 
+IloCplex::OptimalInfeas 
+Optimal solution is available, but with infeasibilities after unscaling 
+6 
+CPX_STAT_NUM_BEST 
+IloCplex::NumBest 
+Solution is available, but not proved optimal, due to numerical difficulties during optimization 
+10 
+CPX_STAT_ABORT_IT_LIM 
+IloCplex::AbortItLim 
+Aborted due to an iteration limit 
+11 
+CPX_STAT_ABORT_TIME_LIM 
+IloCplex::AbortTimeLim 
+Aborted due to a time limit 
+12 
+CPX_STAT_ABORT_OBJ_LIM 
+IloCplex::AbortObjLim 
+Aborted due to an objective limit 
+13 
+CPX_STAT_ABORT_USER 
+IloCplex::AbortUser 
+Aborted on user request 
+20 
+CPX_STAT_OPTIMAL_FACE_UNBOUNDED 
+IloCplex::OptimalFaceUnbounded 
+Model has Unbounded optimal face 
+21 
+CPX_STAT_ABORT_PRIM_OBJ_LIM 
+IloCplex::AbortPrimObjLim 
+Aborted due to a primal obj limit 
+22 
+CPX_STAT_ABORT_DUAL_OBJ_LIM 
+IloCplex::AbortDualObjLim 
+Aborted due to a dual obj limit 
+101 
+CPXMIP_OPTIMAL 
+IloCplex::Optimal 
+Optimal integer solution found 
+102 
+CPXMIP_OPTIMAL_TOL 
+IloCplex::OptimalTol 
+Optimal sol. within epgap or epagap tolerance found 
+103 
+CPXMIP_INFEASIBLE 
+IloCplex::Infeasible 
+Integer infeasible 
+104 
+CPXMIP_SOL_LIM 
+IloCplex::SolLim 
+Mixed integer solutions limit exceeded 
+105 
+CPXMIP_NODE_LIM_FEAS 
+IloCplex::NodeLimFeas 
+Node limit exceeded, integer solution exists 
+106 
+CPXMIP_NODE_LIM_INFEAS 
+IloCplex::NodeLimInfeas 
+Node limit exceeded, no integer solution 
+107 
+CPXMIP_TIME_LIM_FEAS 
+IloCplex::AbortTimeLim 
+Time limit exceeded, integer solution exists 
+108 
+CPXMIP_TIME_LIM_INFEAS 
+IloCplex::TimeLimInfeas 
+Time limit exceeded, no integer solution 
+109 
+CPXMIP_FAIL_FEAS 
+IloCplex::FailFeas 
+Error termination, integer solution exists 
+110 
+CPXMIP_FAIL_INFEAS 
+IloCplex::FailInfeas 
+Error termination, no integer solution 
+111 
+CPXMIP_MEM_LIM_FEAS 
+IloCplex::MemLimFeas 
+Treememory limit, integer solution exists 
+112 
+CPXMIP_MEM_LIM_INFEAS 
+IloCplex::MemLimInfeas 
+Treememory limit, no integer solution exists 
+113 
+CPXMIP_ABORT_FEAS 
+IloCplex::AbortFeas 
+Aborted, integer solution exists 
+114 
+CPXMIP_ABORT_INFEAS 
+IloCplex::AbortInfeas 
+Aborted, no integer solution 
+115 
+CPXMIP_OPTIMAL_INFEAS 
+IloCplex::OptimalInfeas 
+Problem optimal with unscaled infeasibilities 
+116 
+CPXMIP_FAIL_FEAS_NO_TREE 
+IloCplex::FailFeasNoTree 
+Out of memory, no tree, integer solution exists 
+117 
+CPXMIP_FAIL_INFEAS_NO_TREE 
+IloCplex::FailInfeasNoTree 
+Out of memory, no tree, no integer solution 
+118 
+CPXMIP_UNBOUNDED 
+IloCplex::Unbounded 
+Model has an Unbounded ray 
+119 
+CPXMIP_INForUNBD 
+IloCplex::InfOrUnbd 
+Model is proved either Infeasible or Unbounded
