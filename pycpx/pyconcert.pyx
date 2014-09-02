@@ -178,6 +178,9 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam Threads "IloCplex::Threads"
     cdef IntParam RelativeMIPGapTolerance "IloCplex::EpGap"
     cdef IntParam MIPEmphasis "IloCplex::MIPEmphasis"
+    cdef IntParam TiLim "IloCplex::TiLim"
+    cdef IntParam TreLim "IloCplex::TreLim"
+    cdef IntParam VarSel "IloCplex::VarSel"
 
     cdef int CPX_ALG_NONE, CPX_ALG_AUTOMATIC, CPX_ALG_PRIMAL, CPX_ALG_DUAL, CPX_ALG_BARRIER,
     cdef int CPX_ALG_SIFTING, CPX_ALG_CONCURRENT, CPX_ALG_NET
@@ -1838,7 +1841,8 @@ cdef class CPlexModel(object):
               bint recycle_variables = False, bint recycle_basis = True,
               dict starting_dict = {}, str basis_file = None,
               algorithm = "auto", max_threads = None, relative_gap = None,
-	      emphasis = None):
+              emphasis = None, time_limit = None, tree_limit = None,
+              variable_select = None):
         """
         Solves the current model trying to maximize (default) or
         minimize `objective` subject to the constraints given by
@@ -1909,9 +1913,29 @@ cdef class CPlexModel(object):
 
           Specify the relative gap for the relaxed vs. integer solution.
 
-	emphasis:
+        emphasis:
 
-	  Specify emphasis on optimality (2), feasibility (1), or both (0).
+          Specify emphasis on optimality (2), feasibility (1), or both (0).
+
+        time_limit:
+
+          Specify maximum time limit, in seconds, for a call to an optimizer.
+          Default 1e+75.
+
+        tree_limit:
+
+          Specify an absolute upper limit on the size (in MB, uncompressed)
+          of the branch-and-cut tree. If this limit is exceeded, CPLEX
+          terminates the optimization. Default 1e+75
+        
+        variable_select:
+
+          Sets the rule for selecting the branching variable at the node which 
+          has been selected for branching. Minimum feasibility rule (-1) chooses
+          the varaible with the value closes to an integer but still fractional.
+          Other options are maximum infeasibility rule (1), pseudo cost (2),
+          strong branching (3), pseudo reduced costs (4), default (0) allows
+          CPLEX to select best rule based on problem and its progress.
 
         Example 1::
 
@@ -2054,6 +2078,15 @@ cdef class CPlexModel(object):
 
             if emphasis is not None:
                 self.model.setParameter(MIPEmphasis, <int> int(emphasis))
+
+            if time_limit is not None:
+                self.model.setParameter(TiLim, <int> int(time_limit))
+
+            if tree_limit is not None:
+                self.model.setParameter(TreLim, <int> int(tree_limit))
+
+            if variable_select is not None:
+                self.model.setParameter(VarSel, <int> int(variable_select))
 
             if tmp_basis_file_name is not None:
                 b = bytes(tmp_basis_file_name)
