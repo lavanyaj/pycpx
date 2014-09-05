@@ -203,6 +203,9 @@ cdef extern from "cplex_interface.hpp":
         string asString()
         double getObjectiveValue()
         long getNIterations()
+        long getNRows()
+        long getNCols()
+        long getNQCs()
 
     cdef Status newCPlexModelInterface(CPlexModelInterface**, IloEnv)
 
@@ -2179,11 +2182,37 @@ cdef class CPlexModel(object):
         to solve, as measured by CPlex.  Returns 0 if :meth:`solve`,
         :meth:`minimize`, or :meth:`maximize` have not been called.
         """
-
         self._checkOkay()
         
         return self.model.getNIterations()
+
+
+    def getNRows(self):
+        """
+	Returns the number of rows in the model currently being optimized.	
+        """
+
+        self._checkOkay()
         
+        return self.model.getNRows()
+
+    def getNCols(self):
+        """
+	Returns the number of columns in the model currently being optimized.	
+        """
+
+        self._checkOkay()
+        
+        return self.model.getNCols()
+        
+    def getNQCs(self):
+        """
+	Returns the number of quadratic constraints in the model currently being optimized.	
+        """
+
+        self._checkOkay()
+        
+        return self.model.getNQCs()
 
     cpdef value(self, var_block_or_expression):
         """

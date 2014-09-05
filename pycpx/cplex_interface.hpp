@@ -374,6 +374,30 @@ public:
     return Status();
   }
 
+  long getNRows() const
+  {
+    if(solved())
+      return solver.getNrows();
+    else
+      return 0;
+  }
+
+  long getNCols() const
+  {
+    if(solved())
+      return solver.getNcols();
+    else
+      return 0;
+  }
+
+  long getNQCs() const
+  {
+    if(solved())
+      return solver.getNQCs();
+    else
+      return 0;
+  }
+
   long getNIterations() const
   {
     if(solved())
