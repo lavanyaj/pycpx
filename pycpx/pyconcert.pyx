@@ -184,6 +184,11 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam WorkMem "IloCplex::WorkMem"
     cdef IntParam NodeFileInd "IloCplex::NodeFileInd"
 
+    cdef cppclass StringParam "IloCplex::StringParam":
+        pass
+
+    cdef StringParam WorkDir "IloCplex::WorkDir"
+
     cdef int CPX_ALG_NONE, CPX_ALG_AUTOMATIC, CPX_ALG_PRIMAL, CPX_ALG_DUAL, CPX_ALG_BARRIER,
     cdef int CPX_ALG_SIFTING, CPX_ALG_CONCURRENT, CPX_ALG_NET
         
@@ -197,6 +202,7 @@ cdef extern from "cplex_interface.hpp":
         Status solve(double*)
         Status setParameter(IntParam, int value)
         Status setParameter(IntParam, double value)
+        Status setParameter(StringParam, char *value)
         Status getValues(NumericalArray&, ExpressionArray)
         Status setStartingValues(ExpressionArray&, NumericalArray&)
         Status readBasis(char *filename)
@@ -1847,7 +1853,8 @@ cdef class CPlexModel(object):
               dict starting_dict = {}, str basis_file = None,
               algorithm = "auto", max_threads = None, relative_gap = None,
               emphasis = None, time_limit = None, tree_limit = None,
-              variable_select = None, work_mem = None, node_file_ind = None):
+              variable_select = None, work_mem = None, node_file_ind = None,
+              str work_dir = None):
         """
         Solves the current model trying to maximize (default) or
         minimize `objective` subject to the constraints given by
@@ -1958,6 +1965,11 @@ cdef class CPlexModel(object):
           transferred to disk, in compressed and uncompressed form respectively, into a
           directory named by the WORKDIR parameter, and CPLEX actively manages which nodes
           remain in memory for processing.
+
+        work_dir:
+
+          Specifies the name of an existing directory into which CPLEX may store
+          temporary working files, such as for MIP node files or for out-of-core Barrier. 
 	
 
         Example 1::
@@ -2116,6 +2128,10 @@ cdef class CPlexModel(object):
 
             if node_file_ind is not None:
                 self.model.setParameter(NodeFileInd, <int> int(node_file_ind))
+
+            if work_dir is not None:
+                b = bytes(work_dir)
+                self.model.setParameter(WorkDir, b)
 
             if tmp_basis_file_name is not None:
                 b = bytes(tmp_basis_file_name)
