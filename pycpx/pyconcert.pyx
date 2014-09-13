@@ -181,6 +181,8 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam TiLim "IloCplex::TiLim"
     cdef IntParam TreLim "IloCplex::TreLim"
     cdef IntParam VarSel "IloCplex::VarSel"
+    cdef IntParam WorkMem "IloCplex::WorkMem"
+    cdef IntParam NodeFileInd "IloCplex::NodeFileInd"
 
     cdef int CPX_ALG_NONE, CPX_ALG_AUTOMATIC, CPX_ALG_PRIMAL, CPX_ALG_DUAL, CPX_ALG_BARRIER,
     cdef int CPX_ALG_SIFTING, CPX_ALG_CONCURRENT, CPX_ALG_NET
@@ -1845,7 +1847,7 @@ cdef class CPlexModel(object):
               dict starting_dict = {}, str basis_file = None,
               algorithm = "auto", max_threads = None, relative_gap = None,
               emphasis = None, time_limit = None, tree_limit = None,
-              variable_select = None):
+              variable_select = None, work_mem = None, node_file_ind = None):
         """
         Solves the current model trying to maximize (default) or
         minimize `objective` subject to the constraints given by
@@ -1939,6 +1941,24 @@ cdef class CPlexModel(object):
           Other options are maximum infeasibility rule (1), pseudo cost (2),
           strong branching (3), pseudo reduced costs (4), default (0) allows
           CPLEX to select best rule based on problem and its progress.
+
+        work_mem:
+
+          Specifies an upper limit on the amount of central memory, in megabytes, 
+          that CPLEX is permitted to use for working files (see CPX_PARAM_WORKDIR). 
+
+        node_file_ind:
+
+          Used when working memory, WORKMEM, has been exceeded by the size of the tree.
+          If the node file parameter is set to zero when the tree memory limit is reached,
+          optimization is terminated. Otherwise, a group of nodes is removed from the 
+          in-memory set as needed. By default, CPLEX transfers nodes to node files when 
+          the in-memory set is larger than 128 MBytes, and it keeps the resulting node 
+          `files' in compressed form in memory. At settings 2 and 3, the node files are 
+          transferred to disk, in compressed and uncompressed form respectively, into a
+          directory named by the WORKDIR parameter, and CPLEX actively manages which nodes
+          remain in memory for processing.
+	
 
         Example 1::
 
@@ -2090,6 +2110,12 @@ cdef class CPlexModel(object):
 
             if variable_select is not None:
                 self.model.setParameter(VarSel, <int> int(variable_select))
+
+            if work_mem is not None:
+                self.model.setParameter(WorkMem, <int> int(work_mem))
+
+            if node_file_ind is not None:
+                self.model.setParameter(NodeFileInd, <int> int(node_file_ind))
 
             if tmp_basis_file_name is not None:
                 b = bytes(tmp_basis_file_name)
