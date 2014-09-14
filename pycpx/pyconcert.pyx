@@ -2131,7 +2131,7 @@ cdef class CPlexModel(object):
 
             if work_dir is not None:
                 b = bytes(work_dir)
-                self.model.setParameter(WorkDir, b)
+                self.model.setParameter(WorkDir, <char *> b)
 
             if tmp_basis_file_name is not None:
                 b = bytes(tmp_basis_file_name)
