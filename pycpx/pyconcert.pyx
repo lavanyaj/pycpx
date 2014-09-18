@@ -183,7 +183,7 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam VarSel "IloCplex::VarSel"
     cdef IntParam WorkMem "IloCplex::WorkMem"
     cdef IntParam NodeFileInd "IloCplex::NodeFileInd"
-
+    cdef IntParam Symmetry "IloCplex::Symmetry"
     cdef cppclass StringParam "IloCplex::StringParam":
         pass
 
@@ -1854,7 +1854,7 @@ cdef class CPlexModel(object):
               algorithm = "auto", max_threads = None, relative_gap = None,
               emphasis = None, time_limit = None, tree_limit = None,
               variable_select = None, work_mem = None, node_file_ind = None,
-              str work_dir = None):
+              str work_dir = None, symmetry = None):
         """
         Solves the current model trying to maximize (default) or
         minimize `objective` subject to the constraints given by
@@ -1971,6 +1971,12 @@ cdef class CPlexModel(object):
           Specifies the name of an existing directory into which CPLEX may store
           temporary working files, such as for MIP node files or for out-of-core Barrier. 
 	
+        symmetry:
+          Decides whether symmetry breaking reductions will be automatically 
+          executed, during the preprocessing phase, in a MIP model.  The 
+          default level, -1, allows CPLEX to choose the degree of symmetry
+          breaking to apply. The value 0 (zero) turns off symmetry breaking.
+          Levels 1 through 5 apply increasingly aggressive symmetry breaking.
 
         Example 1::
 
@@ -2132,6 +2138,9 @@ cdef class CPlexModel(object):
             if work_dir is not None:
                 b = bytes(work_dir)
                 self.model.setParameter(WorkDir, <char *> b)
+
+            if symmetry is not None:
+                self.model.setParameter(Symmetry, <int> int(symmetry))
 
             if tmp_basis_file_name is not None:
                 b = bytes(tmp_basis_file_name)
