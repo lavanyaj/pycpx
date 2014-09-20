@@ -214,6 +214,10 @@ cdef extern from "cplex_interface.hpp":
         long getNRows()
         long getNCols()
         long getNQCs()
+        double getBestObjValue()
+        double  getCutoff()
+        double getMIPRelativeGap()
+        int getNnodes()
 
     cdef Status newCPlexModelInterface(CPlexModelInterface**, IloEnv)
 
@@ -2264,6 +2268,43 @@ cdef class CPlexModel(object):
         self._checkOkay()
         
         return self.model.getNQCs()
+
+    def getBestObjValue(self):
+        """
+        Returns a bound on the optimal solution value in the model currently being optimized.	
+        """
+
+        self._checkOkay()
+        
+        return self.model.getBestObjValue()
+
+    def getCutoff(self):
+        """
+        Returns cutoff for the objective value when nodes are being solved during branch-and-cut search.
+        """
+
+        self._checkOkay()
+        
+        return self.model.getCutoff()
+
+    def getMIPRelativeGap(self):
+        """
+        Returns the relative objective gap.
+        """
+
+        self._checkOkay()
+        
+        return self.model.getMIPRelativeGap()
+
+    def getNnodes(self):
+        """
+        Returns the number of nodes processed so far in the active branch-and-cut search.
+        """
+
+        self._checkOkay()
+        
+        return self.model.getNnodes()
+
 
     cpdef value(self, var_block_or_expression):
         """

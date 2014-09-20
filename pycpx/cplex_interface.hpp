@@ -406,6 +406,39 @@ public:
       return 0;
   }
 
+  double getBestObjValue() const
+  {
+    if(solved())
+      return solver.getBestObjValue();
+    else
+      return 0;
+  }
+
+  double getCutoff() const
+  {
+    if(solved())
+      return solver.getCutoff();
+    else
+      return 0;
+  }
+
+  double getMIPRelativeGap() const
+  {
+    if(solved())
+      return solver.getMIPRelativeGap();
+    else
+      return 0;
+  }
+
+  int getNnodes() const
+  {
+    if(solved())
+      return solver.getNnodes();
+    else
+      return 0;
+  }
+
+
   bool solved() const { return model_solved; }
 	
   string asString() const
