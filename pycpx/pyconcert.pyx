@@ -184,6 +184,7 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam WorkMem "IloCplex::WorkMem"
     cdef IntParam NodeFileInd "IloCplex::NodeFileInd"
     cdef IntParam Symmetry "IloCplex::Symmetry"
+    cdef IntParam ConflictDisplay "IloCplex::ConflictDisplay"
     cdef cppclass StringParam "IloCplex::StringParam":
         pass
 
@@ -207,6 +208,13 @@ cdef extern from "cplex_interface.hpp":
         Status setStartingValues(ExpressionArray&, NumericalArray&)
         Status readBasis(char *filename)
         Status writeBasis(char *filename)
+        Status readModel(char *filename)
+        Status writeModel(char *filename)
+        Status readMipStart(char *filename)
+        Status writeMipStart(char *filename)
+        Status readParam(char *filename)
+        Status writeParam(char *filename)
+        Status writeConflict(char *filename)
         bint solved()
         string asString()
         double getObjectiveValue()
@@ -1854,11 +1862,12 @@ cdef class CPlexModel(object):
         
     cpdef solve(self, objective, maximize = None, minimize = None,
               bint recycle_variables = False, bint recycle_basis = True,
-              dict starting_dict = {}, str basis_file = None,
+              dict starting_dict = {}, str basis_file = None, str to_mipstart_file = None,
+              str mipstart_file = None, str model_file = None, str param_file = None,
               algorithm = "auto", max_threads = None, relative_gap = None,
               emphasis = None, time_limit = None, tree_limit = None,
               variable_select = None, work_mem = None, node_file_ind = None,
-              str work_dir = None, symmetry = None):
+              str work_dir = None, symmetry = None, conflict_display = None):
         """
         Solves the current model trying to maximize (default) or
         minimize `objective` subject to the constraints given by
@@ -2146,6 +2155,10 @@ cdef class CPlexModel(object):
             if symmetry is not None:
                 self.model.setParameter(Symmetry, <int> int(symmetry))
 
+            if conflict_display is not None:
+                self.model.setParameter(ConflictDisplay, <int> int(conflict_display))
+
+
             if tmp_basis_file_name is not None:
                 b = bytes(tmp_basis_file_name)
                 self.model.readBasis(b)
@@ -2153,6 +2166,18 @@ cdef class CPlexModel(object):
             if basis_file is not None:
                 b = bytes(basis_file)
                 self.model.readBasis(b)
+
+            if mipstart_file is not None:
+                b = bytes(mipstart_file)
+                self.model.readMipStart(b)
+
+            if model_file is not None:
+                b = bytes(model_file)
+                self.model.readModel(b)
+
+            if param_file is not None:
+                b = bytes(param_file)
+                self.model.readParam(b)
 
             if recycle_variable_values is not None:
 
@@ -2168,7 +2193,12 @@ cdef class CPlexModel(object):
                         var.data[0], newCoercedNumericalArray(X, var.data.md()).data[0])
                     if s.error_code != 0:
                         raise CPlexException("Error setting starting values: %s" % str(s.message))
-
+                        pass
+                    pass
+                if to_mipstart_file is not None:
+                    self.saveMipStart(to_mipstart_file)
+                    pass
+			
             ###############################################################################
             # Now solve it!
             s = self.model.solve(&self.last_op_time)
@@ -2204,6 +2234,70 @@ cdef class CPlexModel(object):
         if s.error_code != 0:
             raise CPlexException(str(s.message))
 
+    def saveConflict(self, str filename):
+        """
+        Writes conflict for the current solution to a file.  This may
+        be used to reinstate a previous state of the solver at a later
+        time.
+        """
+
+        self._checkOkay()
+
+        b = bytes(filename)
+        
+        cdef Status s = self.model.writeConflict(b)
+        
+        if s.error_code != 0:
+            raise CPlexException(str(s.message))
+
+    def saveMipStart(self, str filename):
+        """
+        Writes a basis for the current solution to a file.  This may
+        be used to reinstate a previous state of the solver at a later
+        time.
+        """
+
+        self._checkOkay()
+
+        b = bytes(filename)
+        
+        cdef Status s = self.model.writeMipStart(b)
+        
+        if s.error_code != 0:
+            raise CPlexException(str(s.message))
+
+    def saveModel(self, str filename):
+        """
+        Writes model for the current solution to a file.  This may
+        be used to reinstate a previous state of the solver at a later
+        time.
+        """
+
+        self._checkOkay()
+
+        b = bytes(filename)
+        
+        cdef Status s = self.model.writeModel(b)
+        
+        if s.error_code != 0:
+            raise CPlexException(str(s.message))
+
+    def saveParam(self, str filename):
+        """
+        Writes param for the current solution to a file.  This may
+        be used to reinstate a previous state of the solver at a later
+        time.
+        """
+
+        self._checkOkay()
+
+        b = bytes(filename)
+        
+        cdef Status s = self.model.writeParam(b)
+        
+        if s.error_code != 0:
+            raise CPlexException(str(s.message))
+
     def maximize(self, objective, **options):
         """
         Solves the model by maximizing `objective`. This function
@@ -2221,6 +2315,13 @@ cdef class CPlexModel(object):
         """
 
         return self.solve(objective, maximize = False, **options)
+
+    def solved(self):
+        """
+        Returns true if model was solved succesfully.
+        """
+
+        return self.model.solved()
 
     def getSolverTime(self):
         """
