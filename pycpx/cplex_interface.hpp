@@ -346,6 +346,83 @@ public:
     return Status();
   }
 
+  Status readModel(const char* filename)
+  {
+    try{
+      solver.importModel(model, filename);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+  }
+
+  Status writeModel(const char* filename)
+  {
+    try{
+      solver.exportModel(filename);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+  }
+
+  Status readParam(const char* filename)
+  {
+    try{
+      solver.readParam(filename);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+  }
+
+  Status writeParam(const char* filename)
+  {
+    try{
+      solver.writeParam(filename);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+  }
+
+  Status readMipStart(const char* filename)
+  {
+    try{
+      solver.readMIPStart(filename);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+  }
+
+  Status writeMipStart(const char* filename)
+  {
+    try{
+      solver.writeMIPStarts(filename,0,1);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+  }
+
+  Status writeConflict(const char* filename)
+  {
+    try{
+      solver.writeConflict(filename);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+  }
+
   double getObjectiveValue()
   {
     if(!model_solved)
