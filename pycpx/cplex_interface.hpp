@@ -404,7 +404,7 @@ public:
   Status writeMipStart(const char* filename)
   {
     try{
-      solver.writeMIPStarts(filename,0,1);
+      solver.writeMIPStarts(filename);
     }
     catch(IloException& e){
       return Status(e.getMessage());

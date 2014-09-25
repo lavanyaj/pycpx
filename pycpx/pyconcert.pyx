@@ -184,6 +184,7 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam WorkMem "IloCplex::WorkMem"
     cdef IntParam NodeFileInd "IloCplex::NodeFileInd"
     cdef IntParam Symmetry "IloCplex::Symmetry"
+    cdef IntParam WriteLevel "IloCplex::WriteLevel"
     cdef IntParam ConflictDisplay "IloCplex::ConflictDisplay"
     cdef cppclass StringParam "IloCplex::StringParam":
         pass
@@ -1867,7 +1868,7 @@ cdef class CPlexModel(object):
               algorithm = "auto", max_threads = None, relative_gap = None,
               emphasis = None, time_limit = None, tree_limit = None,
               variable_select = None, work_mem = None, node_file_ind = None,
-              str work_dir = None, symmetry = None, conflict_display = None):
+              str work_dir = None, symmetry = None, conflict_display = None, write_level = None):
         """
         Solves the current model trying to maximize (default) or
         minimize `objective` subject to the constraints given by
@@ -2155,6 +2156,9 @@ cdef class CPlexModel(object):
             if symmetry is not None:
                 self.model.setParameter(Symmetry, <int> int(symmetry))
 
+            if write_level is not None:
+                self.model.setParameter(WriteLevel, <int> int(write_level))
+
             if conflict_display is not None:
                 self.model.setParameter(ConflictDisplay, <int> int(conflict_display))
 
@@ -2193,14 +2197,13 @@ cdef class CPlexModel(object):
                         var.data[0], newCoercedNumericalArray(X, var.data.md()).data[0])
                     if s.error_code != 0:
                         raise CPlexException("Error setting starting values: %s" % str(s.message))
-                        pass
-                    pass
-                if to_mipstart_file is not None:
-                    self.saveMipStart(to_mipstart_file)
-                    pass
 			
             ###############################################################################
             # Now solve it!
+
+            if to_mipstart_file is not None:
+                self.saveMipStart(to_mipstart_file)
+
             s = self.model.solve(&self.last_op_time)
 
             if s.error_code != 0:
