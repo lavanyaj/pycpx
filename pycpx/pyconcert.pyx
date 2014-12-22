@@ -1861,6 +1861,28 @@ cdef class CPlexModel(object):
         self._removeConstraints(constraints)
 
         
+    cpdef set_starting_dict(self, dict starting_dict = {}, str to_mipstart_file = None):
+        self._checkOkay()
+
+        cdef Status s
+        cdef CPlexExpression var
+
+
+        if len(starting_dict) > 0:
+            for var, X in starting_dict.iteritems():
+                s = self.model.setStartingValues(
+                    var.data[0], newCoercedNumericalArray(X, var.data.md()).data[0])
+                if s.error_code != 0:
+                    raise CPlexException("Error setting starting values: %s" % str(s.message))
+                    pass
+                pass
+            ###############################################################################
+            # Now solve it!
+
+        if len(starting_dict) > 0 and to_mipstart_file is not None:
+            self.saveMipStart(to_mipstart_file)
+        pass
+
     cpdef solve(self, objective, maximize = None, minimize = None,
               bint recycle_variables = False, bint recycle_basis = True,
               dict starting_dict = {}, str basis_file = None, str to_mipstart_file = None,
