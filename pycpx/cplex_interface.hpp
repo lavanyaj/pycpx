@@ -78,7 +78,8 @@ public:
   };
   
   CPlexModelInterface(IloEnv _env) 
-    : env(_env), model(_env), solver(_env), current_objective(NULL), model_extracted(false), model_solved(false)
+    : env(_env), model(_env), solver(_env), current_objective(NULL),\
+      model_extracted(false), model_solved(false), startVars(_env), startValues(_env)
   {
   }
 
@@ -152,7 +153,18 @@ public:
     return Status();
   }
 
-  Status setStartingValues(const ExpressionArray& expr, const NumericalArray& numr)
+  Status setStartingValues()
+  {
+    try {
+      solver.getImpl()->setVectors(startValues, 0, startVars, 0, 0, 0);
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    return Status();
+
+  }
+  Status addStartingValues(const ExpressionArray& expr, const NumericalArray& numr)
   {
     try {
       if(!model_extracted)
@@ -162,14 +174,20 @@ public:
 	return Status("Only variables may be set, not expressions.");
 
       IloNumArray X(env, expr.size());
+      IloNumVarArray var = expr.variables();
 
       if(expr.isComplete()) 
 	{
 	  for(long i = 0; i < expr.shape(0); ++i)
-	    for(long j = 0; j < expr.shape(1); ++j)
-	      X[expr.getIndex(i,j)] = numr(i,j);
-
-	  solver.getImpl()->setVectors(X, 0, expr.variables(), 0, 0, 0);
+	    for(long j = 0; j < expr.shape(1); ++j) 
+	      {
+		//cout << "index(" << i << ", " << j << ") : " << expr.getIndex(i,j) << " ";  
+		//cout << " = " << var[expr.getIndex(i,j)] << " ";
+	        X[expr.getIndex(i,j)] = numr(i,j);
+		startVars.add(var[expr.getIndex(i,j)]);
+		startValues.add(X[expr.getIndex(i,j)]);
+	      }
+          //cout << endl;
 	} 
       else
 	{
@@ -553,6 +571,8 @@ private:
   IloEnv env;
   IloModel model;
   IloCplex solver;
+  IloNumArray startValues;
+  IloNumVarArray startVars;
   IloObjective* current_objective;
   bool model_extracted;
   bool model_solved;

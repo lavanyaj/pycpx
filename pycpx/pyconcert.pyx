@@ -206,7 +206,8 @@ cdef extern from "cplex_interface.hpp":
         Status setParameter(IntParam, double value)
         Status setParameter(StringParam, char *value)
         Status getValues(NumericalArray&, ExpressionArray)
-        Status setStartingValues(ExpressionArray&, NumericalArray&)
+        Status setStartingValues()
+        Status addStartingValues(ExpressionArray&, NumericalArray&)
         Status readBasis(char *filename)
         Status writeBasis(char *filename)
         Status readModel(char *filename)
@@ -1867,10 +1868,9 @@ cdef class CPlexModel(object):
         cdef Status s
         cdef CPlexExpression var
 
-
         if len(starting_dict) > 0:
             for var, X in starting_dict.iteritems():
-                s = self.model.setStartingValues(
+                s = self.model.addStartingValues(
                     var.data[0], newCoercedNumericalArray(X, var.data.md()).data[0])
                 if s.error_code != 0:
                     raise CPlexException("Error setting starting values: %s" % str(s.message))
@@ -1878,7 +1878,7 @@ cdef class CPlexModel(object):
                 pass
             ###############################################################################
             # Now solve it!
-
+        s = self.model.setStartingValues()
         if len(starting_dict) > 0 and to_mipstart_file is not None:
             self.saveMipStart(to_mipstart_file)
         pass
@@ -2208,14 +2208,14 @@ cdef class CPlexModel(object):
             if recycle_variable_values is not None:
 
                 for var, val in zip(self.variables, recycle_variable_values):
-                    s = self.model.setStartingValues(
+                    s = self.model.addStartingValues(
                         var.data[0], newCoercedNumericalArray(val, var.data.md()).data[0])
                     if s.error_code != 0:
                         raise CPlexException("Error setting starting values: %s" % str(s.message))
 
             if starting_dict:
                 for var, X in starting_dict.iteritems():
-                    s = self.model.setStartingValues(
+                    s = self.model.addStartingValues(
                         var.data[0], newCoercedNumericalArray(X, var.data.md()).data[0])
                     if s.error_code != 0:
                         raise CPlexException("Error setting starting values: %s" % str(s.message))
