@@ -178,6 +178,7 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam Threads "IloCplex::Threads"
     cdef IntParam RelativeMIPGapTolerance "IloCplex::EpGap"
     cdef IntParam MIPEmphasis "IloCplex::MIPEmphasis"
+    cdef IntParam PopulateLim "IloCplex::PopulateLim"
     cdef IntParam TiLim "IloCplex::TiLim"
     cdef IntParam TreLim "IloCplex::TreLim"
     cdef IntParam VarSel "IloCplex::VarSel"
@@ -198,6 +199,8 @@ cdef extern from "cplex_interface.hpp":
         CPlexModelInterface(IloEnv)
         Status addVariables(ExpressionArray)
         Status addConstraint(ConstraintArray)
+        Status populate()
+        Status populate(double*)
         Status removeConstraint(ConstraintArray)
         Status setObjective(ExpressionArray, bint)
         Status solve()
@@ -2243,6 +2246,192 @@ cdef class CPlexModel(object):
             if tmp_basis_file_name is not None:
                 os.remove(tmp_basis_file_name)
 
+    cpdef populate(self, objective, maximize = None, minimize = None,
+              bint recycle_variables = False, bint recycle_basis = True,
+              dict starting_dict = {}, str basis_file = None, str to_mipstart_file = None,
+              str mipstart_file = None, str model_file = None, str param_file = None,
+              algorithm = "auto", max_threads = None, relative_gap = None,
+              emphasis = None, time_limit = None, tree_limit = None,
+              populate_limit = None,
+              variable_select = None, work_mem = None, node_file_ind = None,
+              str work_dir = None, symmetry = None, conflict_display = None, write_level = None):
+        """
+        Calls populate, which works very similar to solve, but tries to find
+        a number of solutions regardless of optimality.
+
+        See solve() for documentation on parameters.
+        populate_limit:
+
+          This parameter controls how many solutions are generated before
+          the method stops. Its default value is 20.
+        """
+
+        self._checkOkay()
+
+        cdef Status s
+        cdef CPlexExpression var
+
+        ################################################################################
+        # Set local parameters
+
+        cdef CPlexExpression obj
+
+        if not type(objective) is CPlexExpression:
+            raise TypeError("Objective must be an expression.")
+
+        obj = objective
+        
+        cdef bint _maximize = True, _minimize = False
+
+        if maximize is not None and minimize is None:
+            _maximize = maximize
+            _minimize = not _maximize
+            
+        elif maximize is None and minimize is not None:
+            _maximize = not minimize
+            _minimize = not _maximize
+            
+        elif maximize is not None and minimize is not None:
+            _maximize = maximize
+            _minimize = minimize
+
+            if _maximize == _minimize:
+                raise ValueError("Cannot both maximize and minimize the problem at the same time.")
+
+        ################################################################################
+        # Get any model parameters that we need from the previous model
+
+        cdef list recycle_variable_values = None
+
+        if recycle_variables and self.model.solved():
+            recycle_variable_values = [self.value(v) for v in self.variables]
+
+        cdef str tmp_basis_file_name = None
+        
+        if recycle_basis and self.model.solved():
+            tmp_basis_file, tmp_basis_file_name = tempfile.mkstemp(suffix='bas', prefix='tmp_cplex')
+            
+            b = bytes(tmp_basis_file_name)
+            self.model.writeBasis(b)
+
+        try:
+
+            ################################################################################
+            # Now see if we're maximizing or minimizing
+
+            s = self.model.setObjective(obj.data[0], _maximize)
+
+            if s.error_code != 0:
+                raise CPlexException("Error setting objective: %s" % s.message)
+
+            ################################################################################
+            # Now do all the stuff we were going to do, but now it's after
+            # the objective is set, so these things stay put
+
+            try:
+                self.model.setParameter(RootAlg, <int> model_lookup[algorithm.lower()])
+            except KeyError:
+                raise ValueError("Algorithm '%s' not recognized, can be auto, primal, dual, barrier, sifting, concurrent, or netflow.")
+
+            if max_threads:
+                self.model.setParameter(Threads, <int> int(max_threads))
+
+            if relative_gap is not None:
+                self.model.setParameter(RelativeMIPGapTolerance, float(relative_gap))
+
+            if emphasis is not None:
+                self.model.setParameter(MIPEmphasis, <int> int(emphasis))
+
+            if populate_limit is not None:
+                self.model.setParameter(PopulateLim, <int> int(populate_limit))
+
+            if time_limit is not None:
+                self.model.setParameter(TiLim, <int> int(time_limit))
+
+            if tree_limit is not None:
+                self.model.setParameter(TreLim, <int> int(tree_limit))
+
+            if variable_select is not None:
+                self.model.setParameter(VarSel, <int> int(variable_select))
+
+            if work_mem is not None:
+                self.model.setParameter(WorkMem, <int> int(work_mem))
+
+            if node_file_ind is not None:
+                self.model.setParameter(NodeFileInd, <int> int(node_file_ind))
+
+            if work_dir is not None:
+                b = bytes(work_dir)
+                self.model.setParameter(WorkDir, <char *> b)
+
+            if symmetry is not None:
+                self.model.setParameter(Symmetry, <int> int(symmetry))
+
+            if write_level is not None:
+                self.model.setParameter(WriteLevel, <int> int(write_level))
+
+            if conflict_display is not None:
+                self.model.setParameter(ConflictDisplay, <int> int(conflict_display))
+
+
+            if tmp_basis_file_name is not None:
+                b = bytes(tmp_basis_file_name)
+                self.model.readBasis(b)
+
+            if basis_file is not None:
+                b = bytes(basis_file)
+                self.model.readBasis(b)
+
+            if mipstart_file is not None:
+                b = bytes(mipstart_file)
+                self.model.readMipStart(b)
+
+            if model_file is not None:
+                b = bytes(model_file)
+                self.model.readModel(b)
+
+            if param_file is not None:
+                b = bytes(param_file)
+                self.model.readParam(b)
+
+            if recycle_variable_values is not None:
+
+                for var, val in zip(self.variables, recycle_variable_values):
+                    s = self.model.addStartingValues(
+                        var.data[0], newCoercedNumericalArray(val, var.data.md()).data[0])
+                    if s.error_code != 0:
+                        raise CPlexException("Error setting starting values: %s" % str(s.message))
+
+            if starting_dict:
+                for var, X in starting_dict.iteritems():
+                    s = self.model.addStartingValues(
+                        var.data[0], newCoercedNumericalArray(X, var.data.md()).data[0])
+                    if s.error_code != 0:
+                        raise CPlexException("Error setting starting values: %s" % str(s.message))
+			
+            ###############################################################################
+            # Now populate it!
+
+            if to_mipstart_file is not None:
+                self.saveMipStart(to_mipstart_file)
+
+            s = self.model.populate(&self.last_op_time)
+
+            if s.error_code != 0:
+                if s.error_code in [MODEL_UNBOUNDED, MODEL_INFEASABLE,
+                                    MODEL_UNBOUNDED_OR_INFEASABLE]:
+                    
+                    raise CPlexNoSolution(str(s.message))
+                
+                else:
+                    raise CPlexException(str(s.message))
+                
+            return self.model.getObjectiveValue()
+        
+        finally:
+            if tmp_basis_file_name is not None:
+                os.remove(tmp_basis_file_name)
+
     def saveBasis(self, str filename):
         """
         Writes a basis for the current solution to a file.  This may
@@ -2340,6 +2529,15 @@ cdef class CPlexModel(object):
         """
 
         return self.solve(objective, maximize = False, **options)
+
+    def minimize_populate(self, objective, **options):
+        """
+        Populates the model by minimizing `objective`.  This function
+        accepts the same options as :meth:`solve`, with the exception
+        of `maximize` or `mininmize`.
+        """
+
+        return self.populate(objective, maximize = False, **options)
 
     def solved(self):
         """

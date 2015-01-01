@@ -341,6 +341,45 @@ public:
     
 
   }
+  Status populate(IloNum * elapsed_time = NULL)
+  {
+
+    bool unsolved = false;
+    try{
+      if(!model_extracted)
+	extractModel();
+    
+      if(elapsed_time != NULL)
+	*elapsed_time = -solver.getImpl()->getCplexTime();
+
+      if(! solver.getImpl()->populate() )
+	{
+	  *elapsed_time = 0;
+	  unsolved = true;
+	}
+
+      if(elapsed_time != NULL)
+	*elapsed_time += solver.getImpl()->getCplexTime();
+
+    }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    
+    if (unsolved != true)
+      model_solved = true;
+    
+    try
+      {
+	IloCplex::CplexStatus cplexStatus = solver.getCplexStatus();
+	return handleCplexStatus(cplexStatus);
+      }
+    catch(IloException& e){
+      return Status(e.getMessage());
+    }
+    
+
+  }
 
   Status readBasis(const char* filename)
   {
