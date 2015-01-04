@@ -177,8 +177,10 @@ cdef extern from "cplex_interface.hpp":
     cdef IntParam RootAlg "IloCplex::RootAlg"
     cdef IntParam Threads "IloCplex::Threads"
     cdef IntParam RelativeMIPGapTolerance "IloCplex::EpGap"
+    cdef IntParam EpAGap "IloCplex::EpAGap"
     cdef IntParam MIPEmphasis "IloCplex::MIPEmphasis"
     cdef IntParam PopulateLim "IloCplex::PopulateLim"
+    cdef IntParam SolnPoolIntensity "IloCplex::SolnPoolIntensity"
     cdef IntParam TiLim "IloCplex::TiLim"
     cdef IntParam TreLim "IloCplex::TreLim"
     cdef IntParam VarSel "IloCplex::VarSel"
@@ -2252,7 +2254,8 @@ cdef class CPlexModel(object):
               str mipstart_file = None, str model_file = None, str param_file = None,
               algorithm = "auto", max_threads = None, relative_gap = None,
               emphasis = None, time_limit = None, tree_limit = None,
-              populate_limit = None,
+              populate_limit = None, solnpoolintensity = None,
+              epagap = None,
               variable_select = None, work_mem = None, node_file_ind = None,
               str work_dir = None, symmetry = None, conflict_display = None, write_level = None):
         """
@@ -2264,6 +2267,19 @@ cdef class CPlexModel(object):
 
           This parameter controls how many solutions are generated before
           the method stops. Its default value is 20.
+
+        epagap:
+
+          Sets an absolute tolerance on the gap between the best integer 
+          objective and the objective of the best node remaining. When 
+          this difference falls below the value of this parameter, the
+          mixed integer optimization is stopped
+
+        solnpoolintensity:
+
+          Values from 1 (one) to 4 invoke increasing effort to find larger
+          numbers of solutions. Higher values are more expensive in terms
+          of time and memory but are likely to yield more solutions.
         """
 
         self._checkOkay()
@@ -2339,11 +2355,18 @@ cdef class CPlexModel(object):
             if relative_gap is not None:
                 self.model.setParameter(RelativeMIPGapTolerance, float(relative_gap))
 
+            if epagap is not None:
+                self.model.setParameter(EpAGap, float(epagap))
+
+
             if emphasis is not None:
                 self.model.setParameter(MIPEmphasis, <int> int(emphasis))
 
             if populate_limit is not None:
                 self.model.setParameter(PopulateLim, <int> int(populate_limit))
+
+            if solnpoolintensity is not None:
+                self.model.setParameter(SolnPoolIntensity, <int> int(solnpoolintensity))
 
             if time_limit is not None:
                 self.model.setParameter(TiLim, <int> int(time_limit))
